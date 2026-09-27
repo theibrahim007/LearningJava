@@ -1,0 +1,232 @@
+Perfect — theory is the hard part. The code is just typing it out. Let me walk through the code very slowly.
+
+---
+
+## Example 1: Number (copy)
+
+```java
+public class Main {
+
+    static void makeZero(int number) {
+        number = 0;
+    }
+
+    public static void main(String[] args) {
+        int score = 100;
+        makeZero(score);
+        System.out.println(score);
+    }
+}
+```
+
+Let's trace it line by line:
+
+**Step 1:** `int score = 100;`
+→ A box called `score` holds **100**.
+
+**Step 2:** `makeZero(score);`
+→ We call `makeZero`. Java copies the value **100** and puts it into a new box called `number` **inside the method**.
+
+Now there are **two boxes**:
+```
+score  → 100
+number → 100   (a copy)
+```
+
+**Step 3:** Inside the method: `number = 0;`
+→ Only the **copy** changes.
+
+```
+score  → 100   ← unchanged
+number → 0     ← changed
+```
+
+**Step 4:** Back in main: `System.out.println(score);`
+→ Prints `score`, which is still **100**.
+
+**Output:**
+```
+100
+```
+
+---
+
+## Example 2: Array (real thing)
+
+```java
+public class Main {
+
+    static void makeZero(int[] list) {
+        list[0] = 0;
+    }
+
+    public static void main(String[] args) {
+        int[] scores = {100, 90, 80};
+        makeZero(scores);
+        System.out.println(scores[0]);
+    }
+}
+```
+
+**Step 1:** `int[] scores = {100, 90, 80};`
+→ An array is created. `scores` is a box that holds the **address** of the array (let's say address is `#1234`).
+
+```
+scores → #1234
+        (points to array: [100, 90, 80])
+```
+
+**Step 2:** `makeZero(scores);`
+→ Java copies the **address** (`#1234`) into a new box called `list`.
+
+Now there are **two boxes**, both pointing to the **same array**:
+```
+scores → #1234 ─┐
+                ├──► [100, 90, 80]
+list   → #1234 ─┘
+```
+
+**Step 3:** Inside the method: `list[0] = 0;`
+→ `list` points to `#1234`, which is the real array. So it changes the **real array**.
+
+```
+scores → #1234 ─┐
+                ├──► [0, 90, 80]   ← changed!
+list   → #1234 ─┘
+```
+
+**Step 4:** Back in main: `System.out.println(scores[0]);`
+→ Prints `scores[0]`, which is now **0**.
+
+**Output:**
+```
+0
+```
+
+---
+
+## The One Difference
+
+In **Example 1**, the method got a **copy** of the value. Changing it changed nothing outside.
+
+In **Example 2**, the method got a **copy of the address**. The address pointed to the **real array**, so changes were visible outside.
+
+---
+
+## The One-Picture Summary
+
+**Number:**
+```
+main:   score → 100
+method: number → 100  (copy of the value)
+                 ↓
+                becomes 0 — but only the copy
+```
+
+**Array:**
+```
+main:   scores → 🏠 address
+method: list   → 🏠 same address
+                 ↓
+              both point to the SAME house
+              (change inside = change outside)
+```
+
+---
+
+Does this trace make sense? If yes, you've got it. If not, tell me which **step** lost you — 1, 2, 3, or 4.
+
+
+
+my question  is what if i want to print the boht
+
+
+Good question. You can't — because of exactly what we just discussed.
+
+## The truth
+
+- In **Example 1**, `score` stays **100**. The method's `number` becomes 0, but that box disappears when the method ends. You can't print it after.
+- In **Example 2**, `scores[0]` becomes **0**. The original value 100 is **gone**.
+
+So with the current code, you can only print **one value per example**.
+
+---
+
+## If you want to SEE both values, print inside the method too
+
+### Example 1 — print inside the method
+
+```java
+public class Main {
+
+    static void makeZero(int number) {
+        System.out.println("Inside method (before): " + number);  // 100
+        number = 0;
+        System.out.println("Inside method (after): " + number);   // 0
+    }
+
+    public static void main(String[] args) {
+        int score = 100;
+        makeZero(score);
+        System.out.println("In main: " + score);                  // 100
+    }
+}
+```
+
+**Output:**
+```
+Inside method (before): 100
+Inside method (after): 0
+In main: 100
+```
+
+Now you see both — because the method's local `number` still existed while it was running.
+
+---
+
+### Example 2 — print inside the method
+
+```java
+public class Main {
+
+    static void makeZero(int[] list) {
+        System.out.println("Inside method (before): " + list[0]);  // 100
+        list[0] = 0;
+        System.out.println("Inside method (after): " + list[0]);   // 0
+    }
+
+    public static void main(String[] args) {
+        int[] scores = {100, 90, 80};
+        makeZero(scores);
+        System.out.println("In main: " + scores[0]);               // 0
+    }
+}
+```
+
+**Output:**
+```
+Inside method (before): 100
+Inside method (after): 0
+In main: 0
+```
+
+Notice: in main it's **0**, because the array was truly changed.
+
+---
+
+## The key takeaway
+
+If you want to **observe** the change, you must print **while the method is still running** — because after the method ends, its local variable `number` is destroyed.
+
+But the **array** lives on because it was created in `main` and only the address was passed around. Its contents stay changed forever.
+
+---
+
+## Side-by-side summary
+
+| | Print inside method | Print in main |
+|---|---|---|
+| **Number** | shows 100 then 0 | shows 100 |
+| **Array** | shows 100 then 0 | shows 0 |
+
+**Rule:** If you can't see a change outside the method, it's because the method only changed a **copy**.
